@@ -5,6 +5,7 @@ import pathlib
 import re
 import shutil
 import sys
+import zipfile
 
 
 from PIL import Image
@@ -189,6 +190,104 @@ def trailer_download(trailer, leak_word, c_word, hack_word, number, path, filepa
     print('[+]Video Downloaded!', path + '/' + number + leak_word + c_word + hack_word + '-trailer.mp4')
 
 
+class ActorCache:
+    def is_empty(self) -> bool:
+        return not bool(hasattr(self, "cache"))
+
+    def init(self):
+        if hasattr(self, "cache") and isinstance(self.cache, dict):
+            return
+        self.cache = dict()
+
+    def set(self, actor_name, pic_fullpath):
+        if not self.is_empty() and all(len(str(v)) for v in (actor_name, pic_fullpath)):
+            self.cache[actor_name] = str(pic_fullpath)
+
+    def get(self, actor_name):
+        if not self.is_empty():
+            return self.cache.get(actor_name, '')
+        return ''
+
+
+G_actor_cache = ActorCache()
+
+class GFriends:
+    def lib_exists(self) -> bool:
+        if not hasattr(self, "is_init"):
+            self.is_init = True
+            gf = config.getInstance().actor_photo_gfriends_path()
+            gfpath = Path(gf) if len(gf) else None
+            if not(gfpath and gfpath.is_dir()):
+                return False
+            filetree_path = gfpath / "Filetree.json"
+            if not filetree_path.is_file():
+                return False
+            filetree = json.loads(filetree_path.read_text(encoding='utf-8'))
+            if not(filetree is not None and len(filetree.get("Content", []))):
+                return False
+            self.content = filetree["Content"]
+            self.path = gfpath
+        return all(hasattr(self, v) for v in ("content", "path"))
+
+    def get(self, actor_name) -> str:
+        if not self.lib_exists():
+            return ''
+        actor_jpg_name = actor_name + '.jpg'
+        for studio in self.content:
+            if actor_jpg_name in self.content[studio]:
+                actor_photo_path = self.path / "Content" / studio / self.content[studio][actor_jpg_name]
+                return str(actor_photo_path)
+        return ''
+
+
+G_gfriends = GFriends()
+
+
+def cached_link_actor_photo(actor_name, actor_photo, pic_fullpath) -> bool:
+    debug = config.getInstance().debug()
+    if G_actor_cache.is_empty():
+        G_actor_cache.init()
+    pic_fullpath.parent.mkdir(parents=True, exist_ok=True)
+    actor_cached_path = G_actor_cache.get(actor_name)
+    if len(actor_cached_path) and Path(actor_cached_path).is_file():
+        if pic_fullpath.is_file():
+            if pic_fullpath.samefile(actor_cached_path):
+                return True # 处理完-CD1再处理-CD2的情况，来源与目标相同，不用复制，即便download_only_missing_images=0
+            pic_fullpath.unlink(missing_ok=True)
+        try:
+            os.link(actor_cached_path, str(pic_fullpath), follow_symlinks=False)
+        except:
+            shutil.copyfile(actor_cached_path, str(pic_fullpath))
+        target_ok = pic_fullpath.is_file()
+        if target_ok and debug:
+            print(f'[+]Cached link or copy actor photo {str(pic_fullpath)}')
+        return target_ok
+    # 不判断is_file()直接尝试unlink()，这样可以清理一些坏的软链接，因为坏软链接的is_file()会返回假值。故意创建同名目录的情况copyfile()则会向外层抛异常。
+    pic_fullpath.unlink(missing_ok=True)
+    try:
+        os.link(actor_photo, str(pic_fullpath), follow_symlinks=False)
+    except:
+        shutil.copyfile(actor_photo, str(pic_fullpath))
+    target_ok = pic_fullpath.is_file()
+    if target_ok:
+        G_actor_cache.set(actor_name, pic_fullpath)
+        if debug:
+            print(f'[+]Link or copy actor photo {str(pic_fullpath)}')
+    return target_ok
+
+
+def copy_from_local_gfriends(actor_name, pic_fullpath) -> bool:
+    if not G_gfriends.lib_exists():
+        return False
+    actor_photo = G_gfriends.get(actor_name)
+    if not(isinstance(actor_photo, str) and os.path.isfile(actor_photo)):
+        return False
+    try:
+        return cached_link_actor_photo(actor_name, actor_photo, pic_fullpath)
+    except:
+        return False
+
+
 def actor_photo_download(actors, save_dir, number):
     if not isinstance(actors, dict) or not len(actors) or not len(save_dir):
         return
@@ -198,6 +297,7 @@ def actor_photo_download(actors, save_dir, number):
     conf = config.getInstance()
     actors_dir = save_dir / '.actors'
     download_only_missing_images = conf.download_only_missing_images()
+    local_cnt = 0
     dn_list = []
     for actor_name, url in actors.items():
         res = re.match(r'^http.*(\.\w+)$', url, re.A)
@@ -207,7 +307,13 @@ def actor_photo_download(actors, save_dir, number):
         pic_fullpath = actors_dir /  f'{actor_name}{ext}'
         if download_only_missing_images and not file_not_exist_or_empty(pic_fullpath):
             continue
-        dn_list.append((url, pic_fullpath))
+        # 本地gfriends库优先，没有的才从远程下载
+        if not copy_from_local_gfriends(actor_name, pic_fullpath):
+            dn_list.append((url, pic_fullpath))
+        else:
+            local_cnt += 1
+    if local_cnt:
+        print(f"[+]Successfully link or copy {local_cnt} actor photo from local gfriends git repository")
     if not len(dn_list):
         return
     parallel = min(len(dn_list), conf.extrafanart_thread_pool_download())
@@ -292,11 +398,25 @@ def extrafanart_download_threadpool(url_list, save_dir, number):
         print(f'[!]Extrafanart download ThreadPool mode runtime {time.perf_counter() - tm_start:.3f}s')
 
 
-def image_ext(url):
-    try:
-        return os.path.splitext(url)[-1]
-    except:
-        return ".jpg"
+def unzip_local_gallery(path):
+    conf = config.getInstance()
+    if not conf.extrafanart_unzip_gallery():
+        return
+    extrafanart = conf.get_extrafanart()
+    if not len(extrafanart):
+        return
+    targetdir = Path(path)
+    gfolder = targetdir / extrafanart
+    gfolder.mkdir(parents=True, exist_ok=True)
+    uzcnt = 0
+    for z in targetdir.glob('*.zip'):
+        if not re.match('gallery.*\.zip', z.name, re.I):
+            continue
+        with zipfile.ZipFile(str(z),"r") as zobj:
+            zobj.extractall(str(gfolder))
+            uzcnt += len(zobj.namelist())
+    if uzcnt:
+        print(f"[+]Unzipped {uzcnt} gallery photos to folder '{extrafanart}'")
 
 
 # 封面是否下载成功，否则移动到failed
@@ -581,19 +701,29 @@ def paste_file_to_folder(filepath, path, multi_part, number, part, leak_word, c_
                 os.symlink(str(filepath_obj.resolve()), targetpath)
 
         sub_res = config.getInstance().sub_rule()
-        for subfile in filepath_obj.parent.glob('**/*'):
-            if subfile.is_file() and subfile.suffix.lower() in sub_res:
-                if multi_part and part.lower() not in subfile.name.lower():
+        for onefile in filepath_obj.parent.glob('**/*'):
+            if not onefile.is_file():
+                continue
+            if onefile.suffix.lower() in sub_res:
+                if multi_part and part.lower() not in onefile.name.lower():
                     continue
-                if filepath_obj.stem.split('.')[0].lower() != subfile.stem.split('.')[0].lower():
+                if filepath_obj.stem.split('.')[0].lower() != onefile.stem.split('.')[0].lower():
                     continue
-                sub_targetpath = Path(path) / f"{number}{leak_word}{c_word}{hack_word}{''.join(subfile.suffixes)}"
+                sub_targetpath = Path(path) / f"{number}{leak_word}{c_word}{hack_word}{''.join(onefile.suffixes)}"
                 if link_mode not in (1, 2):
-                    shutil.move(str(subfile), str(sub_targetpath))
+                    shutil.move(str(onefile), str(sub_targetpath))
                     print(f"[+]Sub Moved!        {sub_targetpath.name}")
                 else:
-                    shutil.copyfile(str(subfile), str(sub_targetpath))
+                    shutil.copyfile(str(onefile), str(sub_targetpath))
                     print(f"[+]Sub Copied!       {sub_targetpath.name}")
+            elif re.match(r'gallery.*\.zip', onefile.name, re.I): # 下载目录中存在剧照压缩包
+                gallery_targetpath = Path(path) / onefile.name
+                if link_mode not in (1, 2):
+                    shutil.move(str(onefile), str(gallery_targetpath))
+                    print(f"[+]Gallery Moved!    {onefile.name}")
+                else:
+                    shutil.copyfile(str(onefile), str(gallery_targetpath))
+                    print(f"[+]Gallery Copied!   {onefile.name}")
         return
 
     except FileExistsError as fee:
@@ -634,17 +764,27 @@ def paste_file_to_folder_mode2(filepath, path, multi_part, number, part, leak_wo
                 os.symlink(str(filepath_obj.resolve()), targetpath)
 
         sub_res = config.getInstance().sub_rule()
-        for subfile in filepath_obj.parent.glob('**/*'):
-            if subfile.is_file() and subfile.suffix.lower() in sub_res:
-                if multi_part and part.lower() not in subfile.name.lower():
+        for onefile in filepath_obj.parent.glob('**/*'):
+            if not onefile.is_file():
+                continue
+            if onefile.suffix.lower() in sub_res:
+                if multi_part and part.lower() not in onefile.name.lower():
                     continue
-                sub_targetpath = Path(path) / f"{number}{leak_word}{c_word}{hack_word}{''.join(subfile.suffixes)}"
+                sub_targetpath = Path(path) / f"{number}{leak_word}{c_word}{hack_word}{''.join(onefile.suffixes)}"
                 if link_mode not in (1, 2):
-                    shutil.move(str(subfile), str(sub_targetpath))
+                    shutil.move(str(onefile), str(sub_targetpath))
                     print(f"[+]Sub Moved!        {sub_targetpath.name}")
                 else:
-                    shutil.copyfile(str(subfile), str(sub_targetpath))
+                    shutil.copyfile(str(onefile), str(sub_targetpath))
                     print(f"[+]Sub Copied!       {sub_targetpath.name}")
+            elif re.match(r'gallery.*\.zip', onefile.name, re.I): # 下载目录中存在剧照压缩包
+                gallery_targetpath = Path(path) / onefile.name
+                if link_mode not in (1, 2):
+                    shutil.move(str(onefile), str(gallery_targetpath))
+                    print(f"[+]Gallery Moved!    {onefile.name}")
+                else:
+                    shutil.copyfile(str(onefile), str(gallery_targetpath))
+                    print(f"[+]Gallery Copied!   {onefile.name}")
         return
     except FileExistsError as fee:
         print(f'[-]FileExistsError: {fee}')
@@ -749,6 +889,18 @@ def core_main_no_net_op(movie_path, number):
             nfo_xml = etree.parse(full_nfo)
             nfo_fanart_path = nfo_xml.xpath('//fanart/text()')[0]
             ext = Path(nfo_fanart_path).suffix
+            if conf.download_actor_photo_for_kodi():
+                actors_fullpath = full_nfo.with_name('.actors')
+                actors_name = nfo_xml.xpath('//actor/name/text()')
+                local_cnt = 0
+                for actor_name in actors_name:
+                    pic_fullpath = actors_fullpath / f'{actor_name}.jpg'
+                    if conf.download_only_missing_images() and not file_not_exist_or_empty(pic_fullpath):
+                        continue
+                    if copy_from_local_gfriends(actor_name, pic_fullpath):
+                        local_cnt += 1
+                if local_cnt:
+                    print(f"[+]Successfully link or copy {local_cnt} actor photo from local gfriends git repository")
         except:
             return
     else:
@@ -769,6 +921,9 @@ def core_main_no_net_op(movie_path, number):
 
     if multi and conf.jellyfin_multi_part_fanart():
         linkImage(path, number, part, leak_word, c_word, hack_word, ext)
+
+    if conf.is_extrafanart():
+        unzip_local_gallery(path)
 
 
 def core_main(movie_path, number_th, oCC):
@@ -835,7 +990,7 @@ def core_main(movie_path, number_th, oCC):
 
 
     cover = json_data.get('cover')
-    ext = image_ext(cover)
+    ext = Path(cover).suffix
     fanart_path =  f"{number}{leak_word}{c_word}{hack_word}-fanart{ext}"
     poster_path = f"{number}{leak_word}{c_word}{hack_word}-poster{ext}"
     thumb_path =  f"{number}{leak_word}{c_word}{hack_word}-thumb{ext}"
@@ -885,6 +1040,10 @@ def core_main(movie_path, number_th, oCC):
 
         # 移动电影
         paste_file_to_folder(movie_path, path, multi_part, number, part, leak_word, c_word, hack_word)
+
+        # 解压剧照压缩包
+        if conf.is_extrafanart() and (not multi_part or part.lower() == '-cd1'):
+            unzip_local_gallery(path)  # 这里有个小问题，如果影片只存在CD2不存在CD1，则不会解压缩，上面的-cd1条件也一样
 
         # 最后输出.nfo元数据文件，以完成.nfo文件创建作为任务成功标志
         print_files(path, leak_word, c_word,  json_data.get('naming_rule'), part, cn_sub, json_data, movie_path, tag,  json_data.get('actor_list'), liuchu, uncensored, hack_word
@@ -936,6 +1095,10 @@ def core_main(movie_path, number_th, oCC):
         # 兼容Jellyfin封面图文件名规则
         if multi_part and conf.jellyfin_multi_part_fanart():
             linkImage(path, number_th, part, leak_word, c_word, hack_word, ext)
+
+        # 解压剧照压缩包
+        if conf.is_extrafanart() and (not multi_part or part.lower() == '-cd1'):
+            unzip_local_gallery(path)
 
         # 最后输出.nfo元数据文件，以完成.nfo文件创建作为任务成功标志
         print_files(path, leak_word, c_word, json_data.get('naming_rule'), part, cn_sub, json_data, movie_path,
