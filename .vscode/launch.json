@@ -1,11 +1,11 @@
 {
-    // 使用 IntelliSense 了解相关属性。 
+    // 使用 IntelliSense 了解相关属性。
     // 悬停以查看现有属性的描述。
     // 欲了解更多信息，请访问: https://go.microsoft.com/fwlink/?linkid=830387
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "Python: 当前文件",
+            "name": "Movie_Data_Capture",
             "type": "python",
             "request": "launch",
             "console": "integratedTerminal",
@@ -13,21 +13,29 @@
                 "PYTHONIOENCODING": "utf-8"
             },
             "program": "${workspaceFolder}/Movie_Data_capture.py",
-            "program1": "${workspaceFolder}/WebCrawler/javbus.py",
+            "program1": "${workspaceFolder}/WebCrawler/gcolle.py",
             "program2": "${workspaceFolder}/WebCrawler/javdb.py",
-            "program3": "${workspaceFolder}/WebCrawler/xcity.py",
-            "program4": "${workspaceFolder}/number_parser.py",
+            "program3": "${workspaceFolder}/WebCrawler/storyline.py",
+            "program4": "${workspaceFolder}/ADC_function.py",
             "program5": "${workspaceFolder}/config.py",
+            "program6": "${workspaceFolder}/number_parser.py",
+            "program7": "${workspaceFolder}/tj.py",
+            "program8" : "${file}",
             "cwd0": "${fileDirname}",
-            "cwd1": "${workspaceFolder}/dist",
+            "cwd": "${workspaceFolder}/dist",
             "cwd2": "${env:HOME}${env:USERPROFILE}/.mdc",
-            "args0": ["-a","-p","J:/Downloads","-o","J:/log"],
-            "args1": ["-g","-m","3","-c","1","-d","0"],
-            "args2": ["-igd0", "-m3", "-p", "J:/output", "-q", "121220_001"],
-            "args3": ["-agd0","-m3", "-q", ".*","-p","J:/#output"],
-            "args4": ["-gic1", "-d0", "-m3", "-o", "avlog", "-p", "I:/output"],
-            "args5": ["-gic1", "-d0", "-m1", "-o", "avlog", "-p", "J:/Downloads"],
-            "args6": ["-z", "-o", "J:/log"]
+            "args0": ["-a","-p","J:/BTs","-o","D:/msys64/home/z/git/AV_Data_Capture/log"],
+            "args1": ["-g","-m","3","-c","1","-d","0","-p", "J:/BTs"],
+            "args2": ["-gd0", "-m3", "-c1", "-p", "J:/#JAV_output3", "-q", ".*"],
+            "args25": ["-aR3m3s","-d30","-c5","-m3", "-q", ".*","-p","j:/world/jav"],
+            "args3": ["-aiR1m","-c5","-m3", "-q", ".*","-p","J:/#JAV_output3"],
+            "args4": ["-gic1", "-d0", "-m1", "-o", "avlog", "-p", "./t", "-L2"],
+            "args5": ["-gc1", "-d0", "-m1", "-o", "avlog", "-p", "J:/BTs", "-q", "021122-001"],
+            "args": ["-gm1", "-L2", "-p", "J:/BTs", "-w", "javdb", "-C", "common:succ=J:/#JAV_output;failed_o=J:/@failed"],
+            "args7": ["-igm3", "-zd1", "-c1", "-p", "j:/jav"],
+            "args8": ["-igzm3", "-d0", "-c1", "-R0", "-p", "i:/jav", "-o", "i:/log", "-q", "[_-]CD\\d+", "-N"],
+            "args9": ["-zNm3", "-d0", "-p", "i:/jav", "-o", "i:/log", "-q", "cadv-622[_-]CD\\d+", "-Cje:m=1", "-Cje:m=0"],
+            "args10": ["-gDNm3", "-d0", "-c2", "-R0", "-p", "z:/t", "-o", "j:/log", "-q", "", "-C", "f:l=cnn;je:m=1;a:d=1;g=d:/msys64/home/z/git/gfriends;g="]
         }
     ]
 }

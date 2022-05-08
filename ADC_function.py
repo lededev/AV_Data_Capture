@@ -335,6 +335,15 @@ def translate(
         result = post_html(url=url, query=body, headers=headers)
         translate_list = [i["text"] for i in result.json()[0]["translations"]]
         trans_result = trans_result.join(translate_list)
+    elif engine == "google-alt":
+        url = (
+f"https://translate.googleapis.com/translate_a/single?client=gtx&dt=t&sl=auto&tl={target_language}&q={src}"
+        )
+        result = get_html(url=url, return_type="object")
+        if not result.ok:
+            print('[-]Google-alt translate web API calling failed.')
+            return ''
+        trans_result = "".join([i[0] for i in result.json()[0]])
 
     else:
         raise ValueError("Non-existent translation engine")

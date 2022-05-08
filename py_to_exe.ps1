@@ -21,4 +21,4 @@ rmdir -Recurse -Force __pycache__
 rmdir -Recurse -Force Movie_Data_Capture.spec
 
 echo "[Make]Finish"
-pause
+#pause

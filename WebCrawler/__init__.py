@@ -72,7 +72,7 @@ def get_data_from_json(file_number, oCC):
     conf = config.getInstance()
     # default fetch order list, from the beginning to the end
     sources = conf.sources().split(',')
-    def insert(sources,source):
+    def insert(sources, source):
         if source in sources:
             sources.insert(0, sources.pop(sources.index(source)))
         return sources
@@ -81,31 +81,29 @@ def get_data_from_json(file_number, oCC):
         # if the input file name matches certain rules,
         # move some web service to the beginning of the list
         lo_file_number = file_number.lower()
-        if "carib" in sources and (re.match(r"^\d{6}-\d{3}", file_number)
-        ):
-            sources = insert(sources,"carib")
+        if re.match(r"^\d{6}-\d{3}", file_number):
+            sources = insert(sources, "carib")
+            sources = insert(sources, "javdb")
         elif "item" in file_number:
-            sources = insert(sources,"getchu")
+            sources = insert(sources, "getchu")
         elif re.match(r"^\d{5,}", file_number) or "heyzo" in lo_file_number:
-            if "avsox" in sources:
-                sources = insert(sources,"avsox")
+            sources = insert(sources, "avsox")
+            sources = insert(sources, "javdb")
         elif "mgstage" in sources and \
                 (re.match(r"\d+\D+", file_number) or "siro" in lo_file_number):
             sources = insert(sources,"mgstage")
         elif "fc2" in lo_file_number:
-            if "fc2" in sources:
-                sources = insert(sources,"fc2")
+        	sources = insert(sources, "fc2")
         elif "gcolle" in sources and (re.search("\d{6}", file_number)):
-            sources = insert(sources,"gcolle")
+            sources = insert(sources, "gcolle")
         elif "dlsite" in sources and (
                 "rj" in lo_file_number or "vj" in lo_file_number
         ):
             sources = insert(sources,"dlsite")
         elif re.match(r"^[a-z0-9]{3,}$", lo_file_number):
-            if "xcity" in sources:
-                sources = insert(sources,"xcity")
-            if "madou" in sources:
-                sources = insert(sources,"madou")
+            sources = insert(sources, "xcity")
+            sources = insert(sources, "madou")
+            sources = insert(sources, "javdb")
         elif "madou" in sources and (
                 re.match(r"^[a-z0-9]{3,}-[0-9]{1,}$", lo_file_number)
         ):
@@ -265,12 +263,22 @@ def get_data_from_json(file_number, oCC):
                     continue
                 except:
                     pass
+            t = ""
+            translate_engine = conf.get_translate_engine()
+            if translate_engine == "google-all":
+                translate_engine = secrets.choice(('google-free', 'google-alt', 'google-alt', 'google-alt'))
             if conf.get_translate_engine() == "azure":
                 t = translate(
                     json_data[translate_value],
                     target_language="zh-Hans",
                     engine=conf.get_translate_engine(),
                     key=conf.get_translate_key(),
+                )
+            elif translate_engine == "google-alt":
+                t = translate(
+                    json_data[translate_value],
+                    target_language="zh-cn",
+                    engine=translate_engine
                 )
             else:
                 t = translate(json_data[translate_value])
