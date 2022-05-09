@@ -8,7 +8,7 @@ $FACE_RECOGNITION_MODELS=$(python -c 'import face_recognition_models as _; print
 mkdir build
 mkdir __pycache__
 
-pyinstaller --onefile Movie_Data_Capture.py `
+pyinstaller --onefile avdc.py `
     --hidden-import "ImageProcessing.cnn" `
     --add-data "$FACE_RECOGNITION_MODELS;face_recognition_models" `
     --add-data "$CLOUDSCRAPER_PATH;cloudscraper" `
@@ -18,7 +18,7 @@ pyinstaller --onefile Movie_Data_Capture.py `
 
 rmdir -Recurse -Force build
 rmdir -Recurse -Force __pycache__
-rmdir -Recurse -Force Movie_Data_Capture.spec
+rmdir -Recurse -Force avdc.spec
 
 echo "[Make]Finish"
 #pause

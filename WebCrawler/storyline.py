@@ -332,7 +332,7 @@ def getStoryline_amazon(q_title, number, debug):
             # 删除无效cookies，无论是用户创建还是自动创建，以避免持续故障
             cookies_filepath and len(cookies_filepath) and Path(cookies_filepath).is_file() and Path(cookies_filepath).unlink(missing_ok=True)
             # 自动创建的cookies文件放在搜索路径表的末端，最低优先级。有amazon.co.jp帐号的用户可以从浏览器导出cookie放在靠前搜索路径
-            ama_save = Path.home() / ".local/share/mdc/amazon.json"
+            ama_save = Path.home() / ".local/share/avdc/amazon.json"
             ama_save.parent.mkdir(parents=True, exist_ok=True)
             ama_save.write_text(json.dumps(session.cookies.get_dict(), sort_keys=True, indent=4), encoding='utf-8')
 
@@ -405,10 +405,10 @@ def amazon_select_one(a_titles, q_title, number, debug):
     # debug 模式下记录识别准确率日志
     if ratio < 0.9:
         # 相似度[0.5, 0.9)的淘汰结果单独记录日志
-        with (Path.home() / '.mlogs/ratio0.5.txt').open('a', encoding='utf-8') as hrt:
+        with (Path.home() / '.avlogs/ratio0.5.txt').open('a', encoding='utf-8') as hrt:
             hrt.write(f' [{number}]  Ratio:{ratio}\n{a_titles[sel]}\n{q_title}\n{save_t_}\n{que_t}\n')
         return -1
     # 被采信的结果日志
-    with (Path.home() / '.mlogs/ratio.txt').open('a', encoding='utf-8') as hrt:
+    with (Path.home() / '.avlogs/ratio.txt').open('a', encoding='utf-8') as hrt:
         hrt.write(f' [{number}]  Ratio:{ratio}\n{a_titles[sel]}\n{q_title}\n{save_t_}\n{que_t}\n')
     return sel

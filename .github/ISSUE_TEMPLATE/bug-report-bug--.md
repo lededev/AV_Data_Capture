@@ -24,13 +24,13 @@ A clear and concise description of what you expected to happen.
 对您期望发生的事情进行清晰简洁的描述
 
 **Screenshots BUG发生截图**
- 
+
 **Logs 日志**
 Copy all or key content of the file to this
 复制文件的全部或关键内容到此
 Logs location:
-Windows : C:/Users/username/.mlogs/
-Linux/MacOS/BSD: /home/username/.mlogs/
+Windows : C:/Users/username/.avlogs/
+Linux/MacOS/BSD: /home/username/.avlogs/
 
 **Running Env 运行环境**
  - OS :

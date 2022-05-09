@@ -5,14 +5,14 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "Movie_Data_Capture",
+            "name": "AV_Data_Capture",
             "type": "python",
             "request": "launch",
             "console": "integratedTerminal",
             "env": {
                 "PYTHONIOENCODING": "utf-8"
             },
-            "program": "${workspaceFolder}/Movie_Data_capture.py",
+            "program": "${workspaceFolder}/avdc.py",
             "program1": "${workspaceFolder}/WebCrawler/gcolle.py",
             "program2": "${workspaceFolder}/WebCrawler/javdb.py",
             "program3": "${workspaceFolder}/WebCrawler/storyline.py",
@@ -23,11 +23,11 @@
             "program8" : "${file}",
             "cwd0": "${fileDirname}",
             "cwd": "${workspaceFolder}/dist",
-            "cwd2": "${env:HOME}${env:USERPROFILE}/.mdc",
-            "args0": ["-a","-p","J:/BTs","-o","D:/msys64/home/z/git/AV_Data_Capture/log"],
+            "cwd2": "${env:HOME}${env:USERPROFILE}/.avdc",
+            "args0": ["-a","-p","J:/BTs","-o","J:/log"],
             "args1": ["-g","-m","3","-c","1","-d","0","-p", "J:/BTs"],
             "args2": ["-gd0", "-m3", "-c1", "-p", "J:/#JAV_output3", "-q", ".*"],
-            "args25": ["-aR3m3s","-d30","-c5","-m3", "-q", ".*","-p","j:/world/jav"],
+            "args25": ["-aR3m3s","-d30","-c5","-m3", "-q", ".*","-p","j:/jav"],
             "args3": ["-aiR1m","-c5","-m3", "-q", ".*","-p","J:/#JAV_output3"],
             "args4": ["-gic1", "-d0", "-m1", "-o", "avlog", "-p", "./t", "-L2"],
             "args5": ["-gc1", "-d0", "-m1", "-o", "avlog", "-p", "J:/BTs", "-q", "021122-001"],

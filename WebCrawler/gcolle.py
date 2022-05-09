@@ -28,7 +28,7 @@ def main(number):
             raise Exception('[-]gcolle.py: number not match')
 
         if save_cookies:
-            cookies_save = Path.home() / f".local/share/mdc/{cookie_filename}"
+            cookies_save = Path.home() / f".local/share/avdc/{cookie_filename}"
             cookies_save.parent.mkdir(parents=True, exist_ok=True)
             cookies_save.write_text(json.dumps(session.cookies.get_dict(), sort_keys=True, indent=4), encoding='utf-8')
 
