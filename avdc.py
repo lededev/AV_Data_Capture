@@ -9,7 +9,7 @@ import typing
 import urllib3
 import signal
 import platform
-import multiprocessing
+from cpuinfo import get_cpu_info
 from datetime import datetime, timedelta
 from pathlib import Path
 
@@ -40,7 +40,7 @@ def check_update(local_version):
         print("[*]======================================================")
 
 
-def argparse_function(ver: str) -> typing.Tuple[str, str, str, str, bool, bool]:
+def argparse_function(version: str, release: str) -> typing.Tuple[str, str, str, str, bool, bool]:
     conf = config.getInstance()
     parser = argparse.ArgumentParser(epilog=f"Load Config file '{conf.ini_path}'.")
     parser.add_argument("file", default='', nargs='?', help="Single Movie file path.")
@@ -81,7 +81,8 @@ def argparse_function(ver: str) -> typing.Tuple[str, str, str, str, bool, bool]:
     parser.add_argument("-z", "--zero-operation", dest='zero_op', action="store_true",
                         help="""Only show job list of files and numbers, and **NO** actual operation
 is performed. It may help you correct wrong numbers before real job.""")
-    parser.add_argument("-v", "--version", action="version", version=ver)
+    verrel = version if not len(release) else f"{version}-{release}"
+    parser.add_argument("-v", "--version", action="version", version=verrel)
 
     args = parser.parse_args()
 
@@ -119,7 +120,7 @@ is performed. It may help you correct wrong numbers before real job.""")
         if no_net_op:
             conf.set_override("common:stop_counter=0;rerun_delay=0s;face:aways_imagecut=1")
 
-    return args.file, args.number, args.logdir, args.regexstr, args.zero_op, no_net_op
+    return args.file, args.number, args.logdir, args.regexstr, args.zero_op, no_net_op, verrel
 
 
 class OutLogger(object):
@@ -512,7 +513,7 @@ def create_data_and_move_with_custom_number(file_path: str, custom_number, oCC):
 
 
 def main(args: tuple) -> Path:
-    (single_file_path, custom_number, logdir, regexstr, zero_op, no_net_op) = args
+    (single_file_path, custom_number, logdir, regexstr, zero_op, no_net_op, verrel) = args
     conf = config.getInstance()
     main_mode = conf.main_mode()
     folder_path = ""
@@ -527,13 +528,21 @@ def main(args: tuple) -> Path:
         signal.signal(signal.SIGWINCH, sigdebug_handler)
     dupe_stdout_to_logfile(logdir)
 
-    platform_total = str(
-        ' - ' + platform.platform() + ' \n[*] - ' + platform.machine() + ' - Python-' + platform.python_version())
+    cpuinfo = get_cpu_info()
+    x86_64_cpu = cpuinfo['arch'] == 'X86_64'
+    avx_cpu = x86_64_cpu and 'avx' in cpuinfo['flags']
+    if x86_64_cpu and not avx_cpu:
+        conf.set_override('face:locations_model=')
 
-    print('[*]================= Movie Data Capture =================')
-    print('[*]' + version.center(54))
+    running_env_info = f"""
+[*]     OS: {platform.platform()}
+[*]    CPU: {cpuinfo['brand_raw']}{' (avx)' if avx_cpu else ''}
+[*] Python: {cpuinfo['python_version']}""".lstrip()
+
+    print('[*]================== AV Data Capture ===================')
+    print('[*]' + verrel.center(54))
     print('[*]======================================================')
-    print('[*]' + platform_total)
+    print(running_env_info)
     print('[*]======================================================')
     print('[*] - 严禁在墙内宣传本项目 - ')
     print('[*]======================================================')
@@ -675,6 +684,7 @@ def period(delta, pattern):
 
 if __name__ == '__main__':
     version = '6.1.3'
+    release = '1'
     urllib3.disable_warnings()  # Ignore http proxy warning
     app_start = time.time()
 
@@ -682,7 +692,7 @@ if __name__ == '__main__':
     conf = config.Config("config.ini")
 
     # Parse command line args
-    args = tuple(argparse_function(version))
+    args = tuple(argparse_function(version, release))
 
     再运行延迟 = conf.rerun_delay()
     if 再运行延迟 > 0 and conf.stop_counter() > 0:

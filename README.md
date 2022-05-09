@@ -1,18 +1,18 @@
-<h1 align="center">Movie Data Capture - CLI</h1>
+<h1 align="center">AV Data Capture - CLI</h1>
 
 [繁體中文](https://github.com/yoshiko2/Movie_Data_Capture/blob/master/readme_tc.md)
 
-CLI 版本  
+CLI 版本
 ![](https://img.shields.io/badge/build-passing-brightgreen.svg?style=flat)
 ![](https://img.shields.io/github/license/yoshiko2/Movie_data_capture.svg?style=flat)
 ![](https://img.shields.io/github/release/yoshiko2/Movie_data_capture.svg?style=flat)
 ![](https://img.shields.io/badge/Python-3.7-yellow.svg?style=flat&logo=python)<br>
-[Docker 版本](https://github.com/yoshiko2/docker-mdc)  
+[Docker 版本](https://github.com/yoshiko2/docker-mdc)
 ![](https://img.shields.io/badge/build-passing-brightgreen.svg?style=flat)
 ![](https://img.shields.io/github/license/yoshiko2/docker-mdc.svg?style=flat)
 ![](https://img.shields.io/github/release/yoshiko2/docker-mdc.svg?style=flat)
 ![](https://img.shields.io/badge/Python-3.7-yellow.svg?style=flat&logo=python)<br>
-[GUI 版本](https://github.com/moyy996/AVDC)  
+[GUI 版本](https://github.com/moyy996/AVDC)
 ![](https://img.shields.io/badge/build-passing-brightgreen.svg?style=flat)
 ![](https://img.shields.io/github/license/moyy996/avdc.svg?style=flat)
 ![](https://img.shields.io/github/release/moyy996/avdc.svg?style=flat)
@@ -20,7 +20,7 @@ CLI 版本
 ![](https://img.shields.io/badge/Pyqt-5-blue.svg?style=flat)<br>
 
 
-**本地电影元数据 抓取工具 | 刮削器**，配合本地影片管理软件 Emby, Jellyfin, Kodi 等管理本地影片，该软件起到分类与元数据（metadata）抓取作用，利用元数据信息来分类，仅供本地影片分类整理使用。  
+**本地电影元数据 抓取工具 | 刮削器**，配合本地影片管理软件 Emby, Jellyfin, Kodi 等管理本地影片，该软件起到分类与元数据（metadata）抓取作用，利用元数据信息来分类，仅供本地影片分类整理使用。
 ### 请勿在墙内的社交平台上宣传此项目
 
 # 文档
@@ -53,7 +53,7 @@ When you view and download the source code or binary program of this project, it
 * **Please do not promote this project on popular social platforms**
 * The project contributors wrote this project to learn Python and improve programming
 * This project does not provide any clues for video download
-* Before using this project results, please understand and abide by local laws and regulations. If there is any violation of local laws and regulations during the use of this project results, * please do not use this project results  
+* Before using this project results, please understand and abide by local laws and regulations. If there is any violation of local laws and regulations during the use of this project results, * please do not use this project results
 * When the user uses this project results, if the user has any illegal acts in the local area, the user shall bear
 * It is strictly forbidden for users to use this project and project results for commercial and personal intentions
 * Please delete the source code and binary program within 24 hours after downloading
