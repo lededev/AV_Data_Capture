@@ -445,9 +445,9 @@ def image_download(cover, fanart_path, thumb_path, path, filepath):
 def print_files(path, leak_word, c_word, naming_rule, part, cn_sub, json_data, filepath, tag, actor_list, liuchu, uncensored, hack_word,fanart_path,poster_path,thumb_path):
     title, studio, year, outline, runtime, director, actor_photo, release, number, cover, trailer, website, series, label = get_info(json_data)
     if config.getInstance().main_mode() == 3:  # 模式3下，由于视频文件不做任何改变，.nfo文件必须和视频文件名称除后缀外完全一致，KODI等软件方可支持
-        nfo_path = str(Path(filepath).with_suffix('.nfo'))
+        nfo_path = Path(filepath).with_suffix('.nfo')
     else:
-        nfo_path = os.path.join(path,f"{number}{part}{leak_word}{c_word}{hack_word}.nfo")
+        nfo_path = Path(path) / f"{number}{part}{leak_word}{c_word}{hack_word}.nfo"
     try:
         if not os.path.exists(path):
             try:
@@ -458,80 +458,82 @@ def print_files(path, leak_word, c_word, naming_rule, part, cn_sub, json_data, f
 
         old_nfo = None
         try:
-            if os.path.isfile(nfo_path):
+            if nfo_path.is_file():
                 old_nfo = etree.parse(nfo_path)
         except:
             pass
         # KODI内查看影片信息时找不到number，配置naming_rule=number+'#'+title虽可解决
         # 但使得标题太长，放入时常为空的outline内会更适合，软件给outline留出的显示版面也较大
         outline = f"{number}#{outline}"
-        with open(nfo_path, "wt", encoding='UTF-8') as code:
-            print('<?xml version="1.0" encoding="UTF-8" ?>', file=code)
-            print("<movie>", file=code)
-            print("  <title><![CDATA[" + naming_rule + "]]></title>", file=code)
-            print("  <originaltitle><![CDATA[" + naming_rule + "]]></originaltitle>", file=code)
-            print("  <sorttitle><![CDATA[" + naming_rule + "]]></sorttitle>", file=code)
-            print("  <customrating>JP-18+</customrating>", file=code)
-            print("  <mpaa>JP-18+</mpaa>", file=code)
-            print("  <set>", file=code)
-            print("  </set>", file=code)
-            print("  <studio>" + studio + "</studio>", file=code)
-            print("  <year>" + year + "</year>", file=code)
-            print("  <outline><![CDATA[" + outline + "]]></outline>", file=code)
-            print("  <plot><![CDATA[" + outline + "]]></plot>", file=code)
-            print("  <runtime>" + str(runtime).replace(" ", "") + "</runtime>", file=code)
-            print("  <director>" + director + "</director>", file=code)
-            print("  <poster>" + poster_path + "</poster>", file=code)
-            print("  <thumb>" + thumb_path + "</thumb>", file=code)
-            print("  <fanart>" + fanart_path +  "</fanart>", file=code)
+        with nfo_path.open("wt", encoding='UTF-8') as nfo:
+            print('<?xml version="1.0" encoding="UTF-8" ?>', file=nfo)
+            print("<movie>", file=nfo)
+            print("  <title><![CDATA[" + naming_rule + "]]></title>", file=nfo)
+            print("  <originaltitle><![CDATA[" + naming_rule + "]]></originaltitle>", file=nfo)
+            print("  <sorttitle><![CDATA[" + naming_rule + "]]></sorttitle>", file=nfo)
+            print("  <customrating>JP-18+</customrating>", file=nfo)
+            print("  <mpaa>JP-18+</mpaa>", file=nfo)
+            print("  <set>", file=nfo)
+            print("  </set>", file=nfo)
+            print("  <studio>" + studio + "</studio>", file=nfo)
+            print("  <year>" + year + "</year>", file=nfo)
+            print("  <outline><![CDATA[" + outline + "]]></outline>", file=nfo)
+            print("  <plot><![CDATA[" + outline + "]]></plot>", file=nfo)
+            print("  <runtime>" + str(runtime).replace(" ", "") + "</runtime>", file=nfo)
+            print("  <director>" + director + "</director>", file=nfo)
+            print("  <poster>" + poster_path + "</poster>", file=nfo)
+            print("  <thumb>" + thumb_path + "</thumb>", file=nfo)
+            print("  <fanart>" + fanart_path +  "</fanart>", file=nfo)
             try:
                 for key in actor_list:
-                    print("  <actor>", file=code)
-                    print("    <name>" + key + "</name>", file=code)
-                    print("    <role>Protagonist</role>", file=code)
-                    print("    <thumb>" + actor_photo.get(str(key)) + "</thumb>", file=code)
-                    print("  </actor>", file=code)
+                    acturl = actor_photo.get(str(key))
+                    print("  <actor>", file=nfo)
+                    print("    <name>" + key + "</name>", file=nfo)
+                    if isinstance(acturl, str) and len(acturl):
+                        print("    <role>Protagonist</role>", file=nfo)
+                        print(f"    <thumb>{acturl}</thumb>", file=nfo)
+                    print("  </actor>", file=nfo)
             except:
                 aaaa = ''
-            print("  <maker>" + studio + "</maker>", file=code)
-            print("  <label>" + label + "</label>", file=code)
+            print("  <maker>" + studio + "</maker>", file=nfo)
+            print("  <label>" + label + "</label>", file=nfo)
             if cn_sub == '1':
-                print("  <tag>中文字幕</tag>", file=code)
+                print("  <tag>中文字幕</tag>", file=nfo)
             if liuchu == '流出':
-                print("  <tag>流出</tag>", file=code)
+                print("  <tag>流出</tag>", file=nfo)
             if uncensored == 1:
-                print("  <tag>无码</tag>", file=code)
+                print("  <tag>无码</tag>", file=nfo)
             if hack_word != '':
-                print("  <tag>破解</tag>", file=code)
+                print("  <tag>破解</tag>", file=nfo)
             try:
                 for i in tag:
-                    print("  <tag>" + i + "</tag>", file=code)
-                print("  <tag>" + series + "</tag>", file=code)
+                    print("  <tag>" + i + "</tag>", file=nfo)
+                print("  <tag>" + series + "</tag>", file=nfo)
             except:
                 aaaaa = ''
             if cn_sub == '1':
-                print("  <genre>中文字幕</genre>", file=code)
+                print("  <genre>中文字幕</genre>", file=nfo)
             if liuchu == '流出':
-                print("  <genre>流出</genre>", file=code)
+                print("  <genre>流出</genre>", file=nfo)
             if uncensored == 1:
-                print("  <genre>无码</genre>", file=code)
+                print("  <genre>无码</genre>", file=nfo)
             if hack_word != '':
-                print("  <genre>破解</genre>", file=code)
+                print("  <genre>破解</genre>", file=nfo)
             try:
                 for i in tag:
-                    print("  <genre>" + i + "</genre>", file=code)
-                print("  <genre>" + series + "</genre>", file=code)
+                    print("  <genre>" + i + "</genre>", file=nfo)
+                print("  <genre>" + series + "</genre>", file=nfo)
             except:
                 aaaaaaaa = ''
-            print("  <num>" + number + "</num>", file=code)
-            print("  <premiered>" + release + "</premiered>", file=code)
-            print("  <releasedate>" + release + "</releasedate>", file=code)
-            print("  <release>" + release + "</release>", file=code)
+            print("  <num>" + number + "</num>", file=nfo)
+            print("  <premiered>" + release + "</premiered>", file=nfo)
+            print("  <releasedate>" + release + "</releasedate>", file=nfo)
+            print("  <release>" + release + "</release>", file=nfo)
             if old_nfo:
                 try:
                     xur = old_nfo.xpath('//userrating/text()')[0]
                     if isinstance(xur, str) and re.match('\d+\.\d+|\d+', xur.strip()):
-                        print(f"  <userrating>{xur.strip()}</userrating>", file=code)
+                        print(f"  <userrating>{xur.strip()}</userrating>", file=nfo)
                 except:
                     pass
             try:
@@ -544,14 +546,14 @@ def print_files(path, leak_word, c_word, naming_rule, part, cn_sub, json_data, f
       <value>{f_rating}</value>
       <votes>{uc}</votes>
     </rating>
-  </ratings>""", file=code)
+  </ratings>""", file=nfo)
             except:
                 if old_nfo:
                     try:
                         for rtag in ('rating', 'criticrating'):
                             xur = old_nfo.xpath(f'//{rtag}/text()')[0]
                             if isinstance(xur, str) and re.match('\d+\.\d+|\d+', xur.strip()):
-                                print(f"  <{rtag}>{xur.strip()}</{rtag}>", file=code)
+                                print(f"  <{rtag}>{xur.strip()}</{rtag}>", file=nfo)
                         f_rating = old_nfo.xpath(f"//ratings/rating[@name='javdb']/value/text()")[0]
                         uc = old_nfo.xpath(f"//ratings/rating[@name='javdb']/votes/text()")[0]
                         print(f"""  <ratings>
@@ -559,15 +561,15 @@ def print_files(path, leak_word, c_word, naming_rule, part, cn_sub, json_data, f
       <value>{f_rating}</value>
       <votes>{uc}</votes>
     </rating>
-  </ratings>""", file=code)
+  </ratings>""", file=nfo)
                     except:
                         pass
-            print("  <cover>" + cover + "</cover>", file=code)
+            print("  <cover>" + cover + "</cover>", file=nfo)
             if config.getInstance().is_trailer():
-                print("  <trailer>" + trailer + "</trailer>", file=code)
-            print("  <website>" + website + "</website>", file=code)
-            print("</movie>", file=code)
-            print("[+]Wrote!            " + nfo_path)
+                print("  <trailer>" + trailer + "</trailer>", file=nfo)
+            print("  <website>" + website + "</website>", file=nfo)
+            print("</movie>", file=nfo)
+            print(f"[+]Wrote!            {nfo_path.resolve(strict=True)}")
     except IOError as e:
         print("[-]Write Failed!")
         print("[-]", e)
