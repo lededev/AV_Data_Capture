@@ -43,11 +43,10 @@ def check_update(local_version):
 def argparse_function(version: str, release: str) -> typing.Tuple[str, str, str, str, bool, bool]:
     conf = config.getInstance()
     parser = argparse.ArgumentParser(epilog=f"Load Config file '{conf.ini_path}'.")
-    parser.add_argument("file", default='', nargs='?', help="Single Movie file path.")
+    parser.add_argument("sourcepath", default='', nargs='?', help="Analysis folder path.")
     parser.add_argument("-p", "--path", default='', nargs='?', help="Analysis folder path.")
     parser.add_argument("-m", "--main-mode", default='', nargs='?',
                         help="Main mode. 1:Scraping 2:Organizing 3:Scraping in analysis folder")
-    parser.add_argument("-n", "--number", default='', nargs='?', help="Custom file number of single movie file.")
     # parser.add_argument("-C", "--config", default='config.ini', nargs='?', help="The config file Path.")
     parser.add_argument("-L", "--link-mode", default='', nargs='?',
                         help="Create movie file link. 0:moving movie file, do not create link 1:soft link 2:try hard link first")
@@ -110,6 +109,16 @@ is performed. It may help you correct wrong numbers before real job.""")
     if isinstance(args.dnimg, bool) and args.dnimg:
         conf.set_override("common:download_only_missing_images=0")
     set_bool_or_none("debug_mode:switch", args.debug)
+    regexstr = args.regexstr
+    if isinstance(args.sourcepath, str) and len(args.sourcepath):
+        sourcepath = Path(args.sourcepath)
+        if sourcepath.is_file():
+            sourcedir = sourcepath.parent
+            if sourcedir.is_dir():
+                conf.set_override(f'common:source_folder={str(sourcedir)}')
+                regexstr = get_number(False, sourcepath.stem)
+        elif sourcepath.is_dir():
+            conf.set_override(f"common:source_folder={str(sourcepath)}")
     if isinstance(args.cfgcmd, list):
         for cmd in args.cfgcmd:
             conf.set_override(cmd[0])
@@ -120,7 +129,7 @@ is performed. It may help you correct wrong numbers before real job.""")
         if no_net_op:
             conf.set_override("common:stop_counter=0;rerun_delay=0s;face:aways_imagecut=1")
 
-    return args.file, args.number, args.logdir, args.regexstr, args.zero_op, no_net_op, verrel
+    return args.logdir, regexstr, args.zero_op, no_net_op, verrel
 
 
 class OutLogger(object):
@@ -487,33 +496,8 @@ def create_data_and_move(movie_path: str, zero_op: bool, no_net_op: bool, oCC):
                 print('[!]', err)
 
 
-def create_data_and_move_with_custom_number(file_path: str, custom_number, oCC):
-    conf = config.getInstance()
-    file_name = os.path.basename(file_path)
-    try:
-        print("[!] [{1}] As Number Processing for '{0}'".format(file_path, custom_number))
-        if custom_number:
-            core_main(file_path, custom_number, oCC)
-        else:
-            print("[-] number empty ERROR")
-        print("[*]======================================================")
-    except Exception as err:
-        print("[-] [{}] ERROR:".format(file_path))
-        print('[-]', err)
-
-        if conf.link_mode():
-            print("[-]Link {} to failed folder".format(file_path))
-            os.symlink(file_path, os.path.join(conf.failed_folder(), file_name))
-        else:
-            try:
-                print("[-]Move [{}] to failed folder".format(file_path))
-                shutil.move(file_path, os.path.join(conf.failed_folder(), file_name))
-            except Exception as err:
-                print('[!]', err)
-
-
 def main(args: tuple) -> Path:
-    (single_file_path, custom_number, logdir, regexstr, zero_op, no_net_op, verrel) = args
+    (logdir, regexstr, zero_op, no_net_op, verrel) = args
     conf = config.getInstance()
     main_mode = conf.main_mode()
     folder_path = ""
@@ -562,7 +546,7 @@ def main(args: tuple) -> Path:
                     "" if not conf.multi_threading() else ", multi_threading on",
                     "" if conf.nfo_skip_days() == 0 else f", nfo_skip_days={conf.nfo_skip_days()}",
                     "" if conf.stop_counter() == 0 else f", stop_counter={conf.stop_counter()}"
-                    ) if not single_file_path else ('-', 'Single File', '', '', ''))
+                    ))
           )
 
     if conf.update_check():
@@ -612,39 +596,31 @@ def main(args: tuple) -> Path:
         # pip uninstall opencc && pip install opencc-python-reimplemented
         oCC = None if ccm == 0 else OpenCC('t2s' if ccm == 1 else 's2t')
 
-    if not single_file_path == '':  # Single File
-        print('[+]==================== Single File =====================')
-        if custom_number == '':
-            create_data_and_move_with_custom_number(single_file_path,
-                                                    get_number(conf.debug(), os.path.basename(single_file_path)), oCC)
-        else:
-            create_data_and_move_with_custom_number(single_file_path, custom_number, oCC)
+    folder_path = conf.source_folder()
+    if not isinstance(folder_path, str) or folder_path == '':
+        folder_path = os.path.abspath(".")
+
+    movie_list = movie_lists(folder_path, regexstr)
+
+    count = 0
+    count_all = str(len(movie_list))
+    print('[+]Find', count_all, 'movies.')
+    print('[*]======================================================')
+    stop_count = conf.stop_counter()
+    if stop_count < 1:
+        stop_count = 999999
     else:
-        folder_path = conf.source_folder()
-        if not isinstance(folder_path, str) or folder_path == '':
-            folder_path = os.path.abspath(".")
+        count_all = str(min(len(movie_list), stop_count))
 
-        movie_list = movie_lists(folder_path, regexstr)
-
-        count = 0
-        count_all = str(len(movie_list))
-        print('[+]Find', count_all, 'movies.')
-        print('[*]======================================================')
-        stop_count = conf.stop_counter()
-        if stop_count < 1:
-            stop_count = 999999
-        else:
-            count_all = str(min(len(movie_list), stop_count))
-
-        for movie_path in movie_list:  # 遍历电影列表 交给core处理
-            count = count + 1
-            percentage = str(count / int(count_all) * 100)[:4] + '%'
-            print('[!] {:>30}{:>21}'.format('- ' + percentage + ' [' + str(count) + '/' + count_all + '] -',
-                                            time.strftime("%H:%M:%S")))
-            create_data_and_move(movie_path, zero_op, no_net_op, oCC)
-            if count >= stop_count:
-                print("[!]Stop counter triggered!")
-                break
+    for movie_path in movie_list:  # 遍历电影列表 交给core处理
+        count = count + 1
+        percentage = str(count / int(count_all) * 100)[:4] + '%'
+        print('[!] {:>30}{:>21}'.format('- ' + percentage + ' [' + str(count) + '/' + count_all + '] -',
+                                        time.strftime("%H:%M:%S")))
+        create_data_and_move(movie_path, zero_op, no_net_op, oCC)
+        if count >= stop_count:
+            print("[!]Stop counter triggered!")
+            break
 
     if conf.del_empty_folder() and not zero_op:
         rm_empty_folder(conf.success_folder())
