@@ -864,8 +864,8 @@ def core_main_no_net_op(movie_path, number):
     part = ''
     path = str(Path(movie_path).parent)
 
-    if re.search('[-_]CD\d+', movie_path, re.IGNORECASE):
-        part = re.findall('[-_]CD\d+', movie_path, re.IGNORECASE)[0].upper()
+    if re.search('-CD\d+', movie_path, re.IGNORECASE):
+        part = re.findall('-CD\d+', movie_path, re.IGNORECASE)[0].upper()
         multi = True
     if re.search(r'[-_]C(\.\w+$|-\w+)|\d+ch(\.\w+$|-\w+)', movie_path,
             re.I) or '中文' in movie_path or '字幕' in movie_path:
@@ -958,9 +958,9 @@ def core_main(movie_path, number_th, oCC):
     imagecut =  json_data.get('imagecut')
     tag =  json_data.get('tag')
     # =======================================================================判断-C,-CD后缀
-    if re.search('[-_]CD\d+', movie_path, re.IGNORECASE):
+    if re.search('-CD\d+', movie_path, re.IGNORECASE):
         multi_part = 1
-        part = re.findall('[-_]CD\d+', movie_path, re.IGNORECASE)[0].upper()
+        part = re.findall('-CD\d+', movie_path, re.IGNORECASE)[0].upper()
     if re.search(r'[-_]C(\.\w+$|-\w+)|\d+ch(\.\w+$|-\w+)', movie_path,
             re.I) or '中文' in movie_path or '字幕' in movie_path:
         cn_sub = '1'

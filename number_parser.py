@@ -47,7 +47,7 @@ def get_number(debug: bool, file_path: str) -> str:
             lower_check = filename.lower()
             if 'fc2' in lower_check:
                 filename = lower_check.replace('ppv', '').replace('--', '-').replace('_', '-').upper()
-            filename = re.sub("[-_]cd\d{1,2}", "", filename, flags=re.IGNORECASE)
+            filename = re.sub("-cd\d{1,2}", "", filename, flags=re.IGNORECASE)
             if not re.search("-|_", filename): # 去掉-CD1之后再无-的情况，例如n1012-CD1.wmv
                 return str(re.search(r'\w+', filename[:filename.find('.')], re.A).group())
             file_number = str(re.search(r'\w+(-|_)\w+', filename, re.A).group())
@@ -163,7 +163,7 @@ if __name__ == "__main__":
         "sbw99.cc@iesp-653-4K.mp4",
         "4K-ABP-358_C.mkv",
         "n1012-CD1.wmv",
-        "[]n1012-CD2.wmv",
+        "[测试中文]n1012-CD2.wmv",
         "rctd-460ch.mp4",  # 除支持-C硬字幕外，新支持ch硬字幕
         "rctd-461CH-CD2.mp4",  # ch后可加CDn
         "rctd-461-Cd3-C.mp4",  # CDn后可加-C
