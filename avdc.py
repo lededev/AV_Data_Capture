@@ -43,8 +43,9 @@ def check_update(local_version):
 def argparse_function(version: str, release: str) -> typing.Tuple[str, str, str, str, bool, bool]:
     conf = config.getInstance()
     parser = argparse.ArgumentParser(epilog=f"Load Config file '{conf.ini_path}'.")
-    parser.add_argument("sourcepath", default='', nargs='?', help="Analysis folder path.")
-    parser.add_argument("-p", "--path", default='', nargs='?', help="Analysis folder path.")
+    parser.add_argument("AnalysisPath", default='', nargs='?', help="Analysis folder or single file.")
+    parser.add_argument("-p", "--path", default='', nargs='?', help="Analysis folder.")
+    parser.add_argument("-s", "--success-output-folder", default='', nargs='?', help="Success output folder.")
     parser.add_argument("-m", "--main-mode", default='', nargs='?',
                         help="Main mode. 1:Scraping 2:Organizing 3:Scraping in analysis folder")
     # parser.add_argument("-C", "--config", default='config.ini', nargs='?', help="The config file Path.")
@@ -100,6 +101,7 @@ is performed. It may help you correct wrong numbers before real job.""")
     set_natural_number_or_none("common:main_mode", args.main_mode)
     set_natural_number_or_none("common:link_mode", args.link_mode)
     set_str_or_none("common:source_folder", args.path)
+    set_str_or_none("common:success_output_folder", args.success_output_folder)
     set_bool_or_none("common:auto_exit", args.auto_exit)
     set_natural_number_or_none("common:nfo_skip_days", args.days)
     set_natural_number_or_none("common:stop_counter", args.cnt)
@@ -110,15 +112,15 @@ is performed. It may help you correct wrong numbers before real job.""")
         conf.set_override("common:download_only_missing_images=0")
     set_bool_or_none("debug_mode:switch", args.debug)
     regexstr = args.regexstr
-    if isinstance(args.sourcepath, str) and len(args.sourcepath):
-        sourcepath = Path(args.sourcepath)
-        if sourcepath.is_file():
-            sourcedir = sourcepath.parent
+    if isinstance(args.AnalysisPath, str) and len(args.AnalysisPath):
+        ana_path = Path(args.AnalysisPath)
+        if ana_path.is_file():
+            sourcedir = ana_path.parent
             if sourcedir.is_dir():
                 conf.set_override(f'common:source_folder={str(sourcedir)}')
-                regexstr = get_number(False, sourcepath.stem)
-        elif sourcepath.is_dir():
-            conf.set_override(f"common:source_folder={str(sourcepath)}")
+                regexstr = get_number(False, ana_path.stem)
+        elif ana_path.is_dir():
+            conf.set_override(f"common:source_folder={str(ana_path)}")
     if isinstance(args.cfgcmd, list):
         for cmd in args.cfgcmd:
             conf.set_override(cmd[0])
