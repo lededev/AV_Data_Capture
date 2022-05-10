@@ -4,7 +4,7 @@ import os
 import re
 import sys
 import time
-import shutil
+import multiprocessing
 import typing
 import urllib3
 import signal
@@ -133,7 +133,7 @@ is performed. It may help you correct wrong numbers before real job.""")
         if no_net_op:
             conf.set_override("common:stop_counter=0;rerun_delay=0s;face:aways_imagecut=1")
 
-    return args.logdir, regexstr, args.zero_op, no_net_op, verrel
+    return args.logdir, regexstr, args.zero_op, no_net_op, verrel, get_cpu_info()
 
 
 class OutLogger(object):
@@ -501,7 +501,7 @@ def create_data_and_move(movie_path: str, zero_op: bool, no_net_op: bool, oCC):
 
 
 def main(args: tuple) -> Path:
-    (logdir, regexstr, zero_op, no_net_op, verrel) = args
+    (logdir, regexstr, zero_op, no_net_op, verrel, cpuinfo) = args
     conf = config.getInstance()
     main_mode = conf.main_mode()
     folder_path = ""
@@ -516,7 +516,6 @@ def main(args: tuple) -> Path:
         signal.signal(signal.SIGWINCH, sigdebug_handler)
     dupe_stdout_to_logfile(logdir)
 
-    cpuinfo = get_cpu_info()
     x86_64_cpu = cpuinfo['arch'] == 'X86_64'
     avx_cpu = x86_64_cpu and 'avx' in cpuinfo['flags']
     if x86_64_cpu and not avx_cpu:
@@ -664,7 +663,8 @@ def period(delta, pattern):
 
 if __name__ == '__main__':
     version = '6.1.3'
-    release = '1'
+    release = '2'
+    multiprocessing.freeze_support()
     urllib3.disable_warnings()  # Ignore http proxy warning
     app_start = time.time()
 
