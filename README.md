@@ -1,4 +1,4 @@
-<h1 align="center">AV Data Capture - CLI</h1>
+<h1 align="center">AV Data Capture</h1>
 
 [繁體中文](https://github.com/yoshiko2/Movie_Data_Capture/blob/master/readme_tc.md)
 
@@ -6,7 +6,7 @@ CLI 版本
 ![](https://img.shields.io/badge/build-passing-brightgreen.svg?style=flat)
 ![](https://img.shields.io/github/license/yoshiko2/Movie_data_capture.svg?style=flat)
 ![](https://img.shields.io/github/release/yoshiko2/Movie_data_capture.svg?style=flat)
-![](https://img.shields.io/badge/Python-3.7-yellow.svg?style=flat&logo=python)<br>
+![](https://img.shields.io/badge/Python-3.10-yellow.svg?style=flat&logo=python)<br>
 [Docker 版本](https://github.com/yoshiko2/docker-mdc)
 ![](https://img.shields.io/badge/build-passing-brightgreen.svg?style=flat)
 ![](https://img.shields.io/github/license/yoshiko2/docker-mdc.svg?style=flat)
