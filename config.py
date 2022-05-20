@@ -228,6 +228,9 @@ class Config:
         sec += sum(int(v)  for v in re.findall(r'(\d+)h', value, re.I)) * 3600
         return sec
 
+    def interval_delay(self) -> int:
+        return self.conf.getint("common", "interval_delay", fallback=0)
+
     def is_translate(self) -> bool:
         return self.conf.getboolean("translate", "switch")
 
@@ -425,112 +428,130 @@ class Config:
     def _default_config() -> configparser.ConfigParser:
         conf = configparser.ConfigParser()
 
-        sec1 = "common"
-        conf.add_section(sec1)
-        conf.set(sec1, "main_mode", "1")
-        conf.set(sec1, "source_folder", "./")
-        conf.set(sec1, "failed_output_folder", "failed")
-        conf.set(sec1, "success_output_folder", "JAV_output")
-        conf.set(sec1, "link_mode", "0")
-        conf.set(sec1, "scan_hardlink", "0")
-        conf.set(sec1, "failed_move", "1")
-        conf.set(sec1, "auto_exit", "0")
-        conf.set(sec1, "translate_to_sc", "1")
+        sec = "common"
+        conf.add_section(sec)
+        conf.set(sec, "main_mode", "1")
+        conf.set(sec, "source_folder", "./")
+        conf.set(sec, "failed_output_folder", "failed")
+        conf.set(sec, "success_output_folder", "JAV_output")
+        conf.set(sec, "link_mode", "0")
+        conf.set(sec, "scan_hardlink", "0")
+        conf.set(sec, "failed_move", "1")
+        conf.set(sec, "auto_exit", "0")
+        conf.set(sec, "translate_to_sc", "1")
         # actor_gender value: female or male or both or all(含人妖)
-        conf.set(sec1, "actor_gender", "female")
-        conf.set(sec1, "del_empty_folder", "1")
-        conf.set(sec1, "nfo_skip_days", 30)
-        conf.set(sec1, "stop_counter", 0)
-        conf.set(sec1, "ignore_failed_list", 0)
-        conf.set(sec1, "download_only_missing_images", 1)
-        conf.set(sec1, "mapping_table_validity", 7)
-        conf.set(sec1, "rerun_delay", 0)
+        conf.set(sec, "actor_gender", "female")
+        conf.set(sec, "del_empty_folder", "1")
+        conf.set(sec, "nfo_skip_days", 30)
+        conf.set(sec, "stop_counter", 0)
+        conf.set(sec, "ignore_failed_list", 0)
+        conf.set(sec, "download_only_missing_images", 1)
+        conf.set(sec, "mapping_table_validity", 7)
+        conf.set(sec, "rerun_delay", 0)
+        conf.set(sec, "interval_delay", 0)
 
-        sec2 = "proxy"
-        conf.add_section(sec2)
-        conf.set(sec2, "proxy", "")
-        conf.set(sec2, "timeout", "5")
-        conf.set(sec2, "retry", "3")
-        conf.set(sec2, "type", "socks5")
-        conf.set(sec2, "cacert_file", "")
+        sec = "proxy"
+        conf.add_section(sec)
+        conf.set(sec, "proxy", "")
+        conf.set(sec, "timeout", "5")
+        conf.set(sec, "retry", "3")
+        conf.set(sec, "type", "socks5")
+        conf.set(sec, "cacert_file", "")
 
-        sec3 = "Name_Rule"
-        conf.add_section(sec3)
-        conf.set(sec3, "location_rule", "actor + '/' + number")
-        conf.set(sec3, "naming_rule", "number + '-' + title")
-        conf.set(sec3, "max_title_len", "50")
+        sec = "Name_Rule"
+        conf.add_section(sec)
+        conf.set(sec, "location_rule", "actor + '/' + number")
+        conf.set(sec, "naming_rule", "number + '-' + title")
+        conf.set(sec, "max_title_len", "50")
 
-        sec4 = "update"
-        conf.add_section(sec4)
-        conf.set(sec4, "update_check", "1")
+        sec = "update"
+        conf.add_section(sec)
+        conf.set(sec, "update_check", "1")
 
-        sec5 = "priority"
-        conf.add_section(sec5)
-        conf.set(sec5, "website", "airav,javbus,javdb,fanza,xcity,mgstage,fc2,fc2club,avsox,jav321,xcity")
+        sec = "priority"
+        conf.add_section(sec)
+        conf.set(sec, "website", "airav,javbus,javdb,fanza,xcity,mgstage,fc2,fc2club,avsox,jav321,xcity")
 
-        sec6 = "escape"
-        conf.add_section(sec6)
-        conf.set(sec6, "literals", "\()/")  # noqa
-        conf.set(sec6, "folders", "failed, JAV_output")
+        sec = "escape"
+        conf.add_section(sec)
+        conf.set(sec, "literals", "\()/")  # noqa
+        conf.set(sec, "folders", "failed, JAV_output")
 
-        sec7 = "debug_mode"
-        conf.add_section(sec7)
-        conf.set(sec7, "switch", "0")
+        sec = "debug_mode"
+        conf.add_section(sec)
+        conf.set(sec, "switch", "0")
 
-        sec8 = "translate"
-        conf.add_section(sec8)
-        conf.set(sec8, "switch", "0")
-        conf.set(sec8, "engine", "google-free")
+        sec = "translate"
+        conf.add_section(sec)
+        conf.set(sec, "switch", "0")
+        conf.set(sec, "engine", "google-free")
         # conf.set(sec8, "appid", "")
-        conf.set(sec8, "key", "")
-        conf.set(sec8, "delay", "1")
-        conf.set(sec8, "values", "title,outline")
-        conf.set(sec8, "service_site", "translate.google.cn")
+        conf.set(sec, "key", "")
+        conf.set(sec, "delay", "1")
+        conf.set(sec, "values", "title,outline")
+        conf.set(sec, "service_site", "translate.google.cn")
 
-        sec9 = "trailer"
-        conf.add_section(sec9)
-        conf.set(sec9, "switch", "0")
+        sec = "trailer"
+        conf.add_section(sec)
+        conf.set(sec, "switch", "0")
 
-        sec10 = "uncensored"
-        conf.add_section(sec10)
-        conf.set(sec10, "uncensored_prefix", "S2M,BT,LAF,SMD")
+        sec = "uncensored"
+        conf.add_section(sec)
+        conf.set(sec, "uncensored_prefix", "S2M,BT,LAF,SMD")
 
-        sec11 = "media"
-        conf.add_section(sec11)
-        conf.set(sec11, "media_type",
+        sec = "media"
+        conf.add_section(sec)
+        conf.set(sec, "media_type",
                  ".mp4,.avi,.rmvb,.wmv,.mov,.mkv,.flv,.ts,.webm,iso")
-        conf.set(sec11, "sub_type",
+        conf.set(sec, "sub_type",
                  ".smi,.srt,.idx,.sub,.sup,.psb,.ssa,.ass,.usf,.xss,.ssf,.rt,.lrc,.sbv,.vtt,.ttml")
 
-        sec12 = "watermark"
-        conf.add_section(sec12)
-        conf.set(sec12, "switch", 1)
-        conf.set(sec12, "water", 2)
+        sec = "watermark"
+        conf.add_section(sec)
+        conf.set(sec, "switch", 1)
+        conf.set(sec, "water", 2)
 
-        sec13 = "extrafanart"
-        conf.add_section(sec13)
-        conf.set(sec13, "switch", 1)
-        conf.set(sec13, "extrafanart_folder", "extrafanart")
-        conf.set(sec13, "parallel_download", 1)
+        sec = "extrafanart"
+        conf.add_section(sec)
+        conf.set(sec, "switch", 1)
+        conf.set(sec, "extrafanart_folder", "extrafanart")
+        conf.set(sec, "parallel_download", 1)
 
-        sec14 = "storyline"
-        conf.add_section(sec14)
-        conf.set(sec14, "switch", 1)
-        conf.set(sec14, "site", "1:avno1,4:airavwiki")
-        conf.set(sec14, "censored_site", "2:airav,5:xcity,6:amazon")
-        conf.set(sec14, "uncensored_site", "3:58avgo")
-        conf.set(sec14, "show_result", 0)
-        conf.set(sec14, "run_mode", 1)
-        conf.set(sec14, "cc_convert", 1)
+        sec = "storyline"
+        conf.add_section(sec)
+        conf.set(sec, "switch", 1)
+        conf.set(sec, "site", "1:avno1,4:airavwiki")
+        conf.set(sec, "censored_site", "2:airav,5:xcity,6:amazon")
+        conf.set(sec, "uncensored_site", "3:58avgo")
+        conf.set(sec, "show_result", 0)
+        conf.set(sec, "run_mode", 1)
+        conf.set(sec, "cc_convert", 1)
 
-        sec15 = "cc_convert"
-        conf.add_section(sec15)
-        conf.set(sec15, "mode", 1)
-        conf.set(sec15, "vars", "actor,director,label,outline,series,studio,tag,title")
+        sec = "cc_convert"
+        conf.add_section(sec)
+        conf.set(sec, "mode", 1)
+        conf.set(sec, "vars", "actor,director,label,outline,series,studio,tag,title")
 
-        sec16 = "javdb"
-        conf.add_section(sec16)
-        conf.set(sec15, "sites", "33,34")
+        sec = "javdb"
+        conf.add_section(sec)
+        conf.set(sec, "sites", "33,34")
+
+        sec = "face"
+        conf.add_section(sec)
+        conf.set(sec, "multi_part_fanart", "0")
+        conf.set(sec, "locations_model", "hog")
+        conf.set(sec, "uncensored_only", "1")
+        conf.set(sec, "aways_imagecut", "0")
+        conf.set(sec, "aspect_ratio", "2.12")
+
+        sec = "jellyfin"
+        conf.add_section(sec)
+        conf.set(sec, "multi_part_fanart", "0")
+
+        sec = "actor_photo"
+        conf.add_section(sec)
+        conf.set(sec, "download_for_kodi", "0")
+        conf.set(sec, "gfriends_path", "")
 
         return conf
 

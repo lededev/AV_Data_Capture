@@ -2,6 +2,7 @@ import argparse
 import json
 import os
 import re
+import secrets
 import sys
 import time
 import multiprocessing
@@ -624,6 +625,8 @@ def main(args: tuple) -> Path:
         if count >= stop_count:
             print("[!]Stop counter triggered!")
             break
+        if interval_delay := conf.interval_delay():
+            time.sleep(interval_delay + secrets.randbelow(30) / 10)
 
     if conf.del_empty_folder() and not zero_op:
         rm_empty_folder(conf.success_folder())
