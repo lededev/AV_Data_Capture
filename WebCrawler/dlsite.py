@@ -9,6 +9,7 @@ def getTitle(html):
     result = str(html.xpath('/html/head/title/text()')[0])
     result = result[:result.rfind(' | DLsite')]
     result = result[:result.rfind(' [')]
+    result = result.replace('【HD版】', '')
     return result
 def getActor(html):  # //*[@id="center_column"]/div[2]/div[1]/div/table/tbody/tr[1]/td/text()
     try:
@@ -148,7 +149,7 @@ def main(number):
             'number': number,
             'cover': 'https:' + getCover(html),
             'cover_small': '',
-            'imagecut': 1,
+            'imagecut': 4,
             'tag': getTag(html),
             'label': getLabel(html),
             'year': getYear(getRelease(html)),  # str(re.search('\d{4}',getRelease(a)).group()),
