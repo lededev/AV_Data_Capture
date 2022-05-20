@@ -86,20 +86,18 @@ def get_data_from_json(file_number, oCC):
             sources = insert(sources, "javdb")
         elif "item" in file_number:
             sources = insert(sources, "getchu")
+        elif "rj" in lo_file_number or "vj" in lo_file_number or re.match(r"[\u4e00-\u9fa5]", file_number):
+            sources = insert(sources, "dlsite")
         elif re.match(r"^\d{5,}", file_number) or "heyzo" in lo_file_number:
             sources = insert(sources, "avsox")
             sources = insert(sources, "javdb")
         elif "mgstage" in sources and \
                 (re.match(r"\d+\D+", file_number) or "siro" in lo_file_number):
-            sources = insert(sources,"mgstage")
+            sources = insert(sources, "mgstage")
         elif "fc2" in lo_file_number:
-        	sources = insert(sources, "fc2")
+            sources = insert(sources, "fc2")
         elif "gcolle" in sources and (re.search("\d{6}", file_number)):
             sources = insert(sources, "gcolle")
-        elif "dlsite" in sources and (
-                "rj" in lo_file_number or "vj" in lo_file_number
-        ):
-            sources = insert(sources,"dlsite")
         elif re.match(r"^[a-z0-9]{3,}$", lo_file_number):
             sources = insert(sources, "xcity")
             sources = insert(sources, "madou")
@@ -168,8 +166,9 @@ def get_data_from_json(file_number, oCC):
     # 然而也可以跟进关注其它命名规则例如airav.wiki Domain Creation Date: 2019-08-28T07:18:42.0Z
     # 如果将来javdb.com命名规则下不同Studio出现同名碰撞导致无法区分，可考虑更换规则，更新相应的number分析和抓取代码。
     if str(json_data.get('number')).upper() != file_number.upper():
-        print('[-]Movie number has changed! [{}]->[{}]'.format(file_number, str(json_data.get('number'))))
-        return None
+        if not json_data.get('allow_number_change', None):
+            print('[-]Movie number has changed! [{}]->[{}]'.format(file_number, str(json_data.get('number'))))
+            return None
 
     # ================================================网站规则添加结束================================================
 
