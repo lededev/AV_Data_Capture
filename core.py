@@ -490,7 +490,6 @@ def print_files(path, leak_word, c_word, naming_rule, part, cn_sub, json_data, f
                     print("  <actor>", file=nfo)
                     print("    <name>" + key + "</name>", file=nfo)
                     if isinstance(acturl, str) and len(acturl):
-                        print("    <role>Protagonist</role>", file=nfo)
                         print(f"    <thumb>{acturl}</thumb>", file=nfo)
                     print("  </actor>", file=nfo)
             except:
