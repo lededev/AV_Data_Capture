@@ -85,8 +85,9 @@ def get_data_from_json(file_number, oCC):
             sources = insert(sources, "carib")
             sources = insert(sources, "javdb")
         elif "item" in file_number:
+            sources = insert(sources,"getchu")
+        elif "rj" in lo_file_number or "vj" in lo_file_number or re.match(r"[\u30a0-\u30ff]+", file_number):
             sources = insert(sources, "getchu")
-        elif "rj" in lo_file_number or "vj" in lo_file_number or re.match(r"[\u4e00-\u9fa5]", file_number):
             sources = insert(sources, "dlsite")
         elif re.match(r"^\d{5,}", file_number) or "heyzo" in lo_file_number:
             sources = insert(sources, "avsox")
