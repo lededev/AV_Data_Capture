@@ -1,6 +1,7 @@
 beautifulsoup4
 certifi
 cloudscraper
+pysocks
 face_recognition
 lxml
 MechanicalSoup>=1.1.0

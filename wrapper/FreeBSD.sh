@@ -1,4 +1,4 @@
-pkg install python38 py38-requests py38-pip py38-lxml py38-pillow py38-cloudscraper git zip py38-beautifulsoup448 py38-mechanicalsoup
+pkg install python38 py38-requests py38-pip py38-lxml py38-pillow py38-cloudscraper py38-pysocks git zip py38-beautifulsoup448 py38-mechanicalsoup
 pip install pyinstaller
 pyinstaller --onefile avdc.py  --hidden-import ADC_function.py --hidden-import core.py \
     --hidden-import "ImageProcessing.cnn" \
