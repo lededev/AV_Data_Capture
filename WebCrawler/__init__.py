@@ -84,9 +84,9 @@ def get_data_from_json(file_number, oCC):
         if re.match(r"^\d{6}-\d{3}", file_number):
             sources = insert(sources, "carib")
             sources = insert(sources, "javdb")
-        elif "item" in file_number:
+        elif "item" in file_number or "GETCHU" in file_number.upper():
             sources = insert(sources,"getchu")
-        elif "rj" in lo_file_number or "vj" in lo_file_number or re.match(r"[\u3040-\u309F\u30A0-\u30FF]+", file_number):
+        elif "rj" in lo_file_number or "vj" in lo_file_number or re.search(r"[\u3040-\u309F\u30A0-\u30FF]+", file_number):
             sources = insert(sources, "getchu")
             sources = insert(sources, "dlsite")
         elif re.match(r"^\d{5,}", file_number) or "heyzo" in lo_file_number:
@@ -104,7 +104,7 @@ def get_data_from_json(file_number, oCC):
             sources = insert(sources, "madou")
             sources = insert(sources, "javdb")
         elif "madou" in sources and (
-                re.match(r"^[a-z0-9]{3,}-[0-9]{1,}$", lo_file_number)
+                re.search(r"^[a-z0-9]{3,}-[0-9]{1,}$", lo_file_number)
         ):
             sources = insert(sources,"madou")
 
