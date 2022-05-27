@@ -666,7 +666,7 @@ def period(delta, pattern):
 
 
 if __name__ == '__main__':
-    version = '6.1.3'
+    version = '6.2.1'
     release = '2'
     multiprocessing.freeze_support()
     urllib3.disable_warnings()  # Ignore http proxy warning

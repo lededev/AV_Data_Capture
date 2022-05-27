@@ -104,7 +104,7 @@ def get_data_from_json(file_number, oCC):
             sources = insert(sources, "madou")
             sources = insert(sources, "javdb")
         elif "madou" in sources and (
-                re.search(r"^[a-z0-9]{3,}-[0-9]{1,}$", lo_file_number)
+                re.match(r"^[a-z0-9]{3,}-[0-9]{1,}$", lo_file_number)
         ):
             sources = insert(sources,"madou")
 
